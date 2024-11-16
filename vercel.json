@@ -1,6 +1,5 @@
 {
     "version":2,
-    "name":"WEBSITEBACKEND",
     "builds":[
         {
             "src":"server.js",

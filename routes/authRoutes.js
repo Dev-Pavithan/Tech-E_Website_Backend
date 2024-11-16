@@ -449,4 +449,16 @@ router.patch('/edit-role/:id', authenticate, checkAdminRole, async (req, res) =>
   }
 });
 
+router.get('/test', async (req, res) => {
+  try {
+    const users = await User.find();
+    // res.status(200).json(users);
+    res.send('<h1>TEST  Successfully</h1>')
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Server error. Please try again later.' });
+  }
+});
+
+
 export default router;
