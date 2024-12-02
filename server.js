@@ -23,7 +23,7 @@ const server = http.createServer(app);  // Create an HTTP server
 // Initialize Socket.io with the server
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',  // Adjust this based on your frontend's URL
+    origin: ['http://localhost:3000','https://tech-e-website-frontend.vercel.app' ], // Adjust this based on your frontend's URL
     credentials: true
   }
 });
