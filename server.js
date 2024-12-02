@@ -5,34 +5,42 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
-import { Server } from 'socket.io';  // Correct import for socket.io
-import http from 'http';  // Import http to create server
+import { Server } from 'socket.io';
+import http from 'http';
 import errorHandler from './middleware/errorHandler.js';
-import paymentRoutes from './routes/paymentRoutes.js'; 
+import paymentRoutes from './routes/paymentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
 import packageRoutes from './routes/packageRoutes.js';
-import imageRoutes from './routes/imageRoutes.js';  
+import imageRoutes from './routes/imageRoutes.js';
 
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app);  // Create an HTTP server
+const server = http.createServer(app);
+
+// Environment variables
+const PORT = process.env.PORT || 7100;
+const FRONTEND_ORIGINS = [
+  'http://localhost:3000', 
+  'https://tech-e-website-frontend.vercel.app'
+];
 
 // Initialize Socket.io with the server
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000','https://tech-e-website-frontend.vercel.app' ], // Adjust this based on your frontend's URL
-    credentials: true
-  }
+    origin: FRONTEND_ORIGINS, // Allow multiple origins
+    credentials: true,       // Allow cookies to be passed with WebSocket connections
+  },
 });
 
 // Example: Handling WebSocket connection
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('A user connected:', socket.id);
+
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('User disconnected:', socket.id);
   });
 });
 
@@ -40,8 +48,8 @@ io.on('connection', (socket) => {
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
+  origin: FRONTEND_ORIGINS,  // Allow multiple origins
+  credentials: true,        // Allow cookies with HTTP requests
 }));
 app.use(cookieParser());
 app.use(helmet());
@@ -54,16 +62,20 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => console.log('MongoDB Connected'))
 .catch(err => console.error('MongoDB connection error:', err));
+
 // Use routes
 app.use('/user', authRoutes);
 app.use('/login', loginRoutes);
 app.use('/contact', contactRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/images', imageRoutes); 
+app.use('/api/images', imageRoutes);
 
 // Custom error handling middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 7100;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));  // Start the server with Socket.io
+// Start the server with Socket.io
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Frontend origins allowed: ${FRONTEND_ORIGINS.join(', ')}`);
+});
